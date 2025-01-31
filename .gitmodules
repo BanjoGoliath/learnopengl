@@ -1,16 +1,16 @@
 [submodule "gloom/vendor/glad"]
-	path = gloom/vendor/glad
+	path = learnopengl/vendor/glad
 	url = https://github.com/Dav1dde/glad.git
 	branch = c
 [submodule "gloom/vendor/glfw"]
-	path = gloom/vendor/glfw
+	path = learnopengl/vendor/glfw
 	url = https://github.com/glfw/glfw.git
 	branch = master
 [submodule "gloom/vendor/glm"]
-	path = gloom/vendor/glm
+	path = learnopengl/vendor/glm
 	url = https://github.com/g-truc/glm.git
 	branch = master
 [submodule "gloom/vendor/stb"]
-	path = gloom/vendor/stb
+	path = learnopengl/vendor/stb
 	url = https://github.com/nothings/stb.git
 	branch = master
