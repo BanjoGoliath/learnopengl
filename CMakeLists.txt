@@ -32,6 +32,7 @@ add_subdirectory (learnopengl/vendor/glfw)
 # Set include paths
 #
 include_directories (learnopengl/src/
+        learnopengl/common/
         learnopengl/vendor/glad/include/
         learnopengl/vendor/glfw/include/
         learnopengl/vendor/glm/
@@ -71,7 +72,9 @@ add_definitions (-DGLFW_INCLUDE_NONE
                  -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable (${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                 ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                                ${VENDORS_SOURCES})
+                                ${VENDORS_SOURCES}
+        learnopengl/common/common_func.h
+        learnopengl/common/common_func.cpp)
 target_link_libraries (${PROJECT_NAME}
                        glfw
                        ${GLFW_LIBRARIES}

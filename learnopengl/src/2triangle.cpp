@@ -1,11 +1,18 @@
+// ACTUALLY A RECTANGLE???? WHAT???? FALSE ADVERTISING >:((((((
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "iostream"
+#include "common_func.h"
 
-float vertices[] {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f,  0.5f, 0.0f
+float vertices[] = {
+        0.5f,  0.5f, 0.0f,  // top right
+        0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f   // top left
+};
+unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,  // first Triangle
+        1, 2, 3   // second Triangle
 };
 
 const char *vertexShaderSource = "#version 330 core\n"
@@ -25,6 +32,7 @@ const char *fragmentShaderSource = "#version 330 core\n"
 
 unsigned int VBO;
 unsigned int VAO;
+unsigned int EBO;
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
@@ -50,7 +58,7 @@ int main()
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "opungel", NULL, NULL);
     if (window == NULL)
     {
-        std::cout << "you done fucked up" << std::endl;
+        std::cout << "window has FAILED you did something WRONG" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -63,13 +71,6 @@ int main()
         std::cout << "GLAD(os) is late to work" << std::endl;
         return -1;
     }
-
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -93,28 +94,40 @@ int main()
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
 
-    // TODO: put in common
+//    // TODO: put in common
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "ERROR: Shader Program Crashed\n" << infoLog << std::endl;
     }
+//    checkShaderCompileStatus(shaderProgram);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // param explanations STOLEN from the source(engine)
-    // The vertex attribute we wanna configure, which we set in layout (location = 0)
-    // The size, and since we 3D(xyz), it'sa 3
-    // The type of the data, and a *vec in GLSL is a GL_FLOAT
-    // do we want it normalised?(irrelevant)
-    // the space between consecutive vertex attributes, the next set of position data is located exactly 3 times the size of a float away, so we specify that.
-    // the offset of where the position data begins in the buffer. since the position data is at the start of the data array this value is just 0.
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);  // i learnt the hard way that if this goes anywhere else nothing appears
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // 1. The vertex attribute we wanna configure, which we set in `layout (location = 0)` in our shader
+    // 2. The size of our vertex, and since it's a vec3(xyz), it's 3
+    // 3. The type of the data, and a *vec in GLSL is a GL_FLOAT
+    // 4. do we want it normalised?(irrelevant)
+    // 5. the space between consecutive vertex attributes, the next set of position data is located exactly 3 times the size of a float away, so we specify that.
+    // 6. the offset of where the position data begins in the buffer. since the position data is at the start of the data array this value is just 0.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -124,7 +137,8 @@ int main()
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+//        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
 
         glfwSwapBuffers(window);
@@ -133,6 +147,7 @@ int main()
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();
