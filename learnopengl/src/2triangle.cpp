@@ -1,8 +1,8 @@
+#include <unistd.h>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "iostream"
-#include <math.h>
-#include "common_func.h"
+#include "shader.h"
 
 float vertices[] = {
         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
@@ -13,35 +13,9 @@ unsigned int indices[] = {  // note that we start from 0!
         1, 2, 3 // second Triangle
 };
 
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "layout (location = 1) in vec3 aColour;\n"
-                                 "out vec3 vertexColour;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos, 1.0);\n"
-                                 "   vertexColour = aColour;\n"
-                                 "}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "in vec3 vertexColour;\n"
-                                   "\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "    FragColor = vec4(vertexColour, 1.0);\n"
-                                   "}\0";
-
 unsigned int VBO;
 unsigned int VAO;
 unsigned int EBO;
-unsigned int vertexShader;
-unsigned int fragmentShader;
-unsigned int shaderProgram;
-
-// used for error catching
-int success;
-char infoLog[512];
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -51,6 +25,10 @@ void processInput(GLFWwindow *window);
 
 int main()
 {
+    const size_t size = 1024;
+    // Allocate a character array to store the directory path
+    char buffer[size];
+    std::cout << getcwd(buffer, size);
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -74,38 +52,7 @@ int main()
         return -1;
     }
 
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    // TODO: poot in common
-    // Make sure the shader has compiled correctly
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-//    // TODO: put in common
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR: Shader Program Crashed\n" << infoLog << std::endl;
-    }
-//    checkShaderCompileStatus(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    Shader shader("shaders/triangle.vert", "shaders/triangle.frag");
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -140,11 +87,10 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        shader.use();
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 //        glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        // glBindVertexArray(0); // no need to unbind it every time
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -153,7 +99,6 @@ int main()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    glDeleteProgram(shaderProgram);
 
     glfwTerminate();
     return 0;

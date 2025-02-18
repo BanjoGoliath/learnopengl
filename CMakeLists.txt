@@ -33,6 +33,7 @@ add_subdirectory (learnopengl/vendor/glfw)
 #
 include_directories (learnopengl/src/
         learnopengl/common/
+        learnopengl/shaders/
         learnopengl/vendor/glad/include/
         learnopengl/vendor/glfw/include/
         learnopengl/vendor/glm/
