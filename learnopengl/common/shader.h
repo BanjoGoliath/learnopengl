@@ -78,7 +78,7 @@ public:
         glAttachShader(ID, fragment);
         glLinkProgram(ID);
 
-        // ok this is getting stupid i need to put this in a common file
+        // ok this is getting stupid i need to put this in a method
         glGetProgramiv(ID, GL_LINK_STATUS, &success);
         if(!success)
         {

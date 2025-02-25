@@ -3,6 +3,7 @@
 #include "GLFW/glfw3.h"
 #include "iostream"
 #include "shader.h"
+#include "stb_image.h"
 
 float vertices[] = {
         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
@@ -11,6 +12,12 @@ float vertices[] = {
 };
 unsigned int indices[] = {  // note that we start from 0!
         1, 2, 3 // second Triangle
+};
+
+float textureCoords[] = {
+        0.0, 0.0,
+        1.0, 0.0,
+        0.5, 1.0
 };
 
 unsigned int VBO;
@@ -80,6 +87,26 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    // S and T are equivalent to X and Y. R is Z
+    // We need to set both axis
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+    // ---------------
+    // Textures
+    // ---------------
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+
+    int imgW, imgH, nrChannels;
+    unsigned char *data = stbi_load("assets/brick.png", &imgW, &imgH, &nrChannels, 0);
+
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgW, imgH, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
