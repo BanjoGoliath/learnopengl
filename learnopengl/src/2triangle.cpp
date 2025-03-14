@@ -105,9 +105,9 @@ int main()
     // Textures
     // ---------------
 
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    unsigned int texture0, texture1;
+    glGenTextures(1, &texture0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -117,16 +117,33 @@ int main()
     int imgW, imgH, nrChannels;
     unsigned char *data = stbi_load("assets/brick.png", &imgW, &imgH, &nrChannels, 0);
 
-    // specifies the texture target; setting this to GL_TEXTURE_2D means this operation will generate a texture on the currently bound texture object at the same target (so any textures bound to targets GL_TEXTURE_1D or GL_TEXTURE_3D will not be affected).
-    // the mipmap level for which we want to create a texture for if you want to set each mipmap level manually, but we'll leave it at the base level which is 0.
-    // what kind of format we want to store the texture. Our image has only RGB values so we'll store the texture with RGB values as well.
-    // the width and height of the resulting texture. We stored those earlier when loading the image so we'll use the corresponding variables.
+    // specifies the texture0 target; setting this to GL_TEXTURE_2D means this operation will generate a texture0 on the currently bound texture0 object at the same target (so any textures bound to targets GL_TEXTURE_1D or GL_TEXTURE_3D will not be affected).
+    // the mipmap level for which we want to create a texture0 for if you want to set each mipmap level manually, but we'll leave it at the base level which is 0.
+    // what kind of format we want to store the texture0. Our image has only RGB values so we'll store the texture0 with RGB values as well.
+    // the width and height of the resulting texture0. We stored those earlier when loading the image so we'll use the corresponding variables.
     // should always be 0 (some legacy stuff).
     // the format and datatype of the source image. We loaded the image with RGB values and stored them as chars (bytes) so we'll pass in the corresponding values.
     // the actual image data.
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgW, imgH, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
+
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char *data2 = stbi_load("assets/gord.jpg", &imgW, &imgH, &nrChannels, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgW, imgH, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
+    glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
+    stbi_image_free(data2);
+
+    shader.use();
+    glUniform1i(glGetUniformLocation(shader.ID, "texture0"), 0);
+    shader.setInt("texture1", 1);
 
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -134,11 +151,14 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        shader.use();
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 //        glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawArrays(GL_TRIANGLES, 0, 3);
